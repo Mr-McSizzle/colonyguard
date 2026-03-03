@@ -107,12 +107,7 @@ export default function LandingPage() {
           >
             Platform
           </Link>
-          <Link
-            className="px-4 py-2 text-gray-400 hover:text-accent-cyan hover:bg-white/5 rounded-sm transition-all text-xs uppercase tracking-widest font-display border border-transparent hover:border-primary/20"
-            href="/research"
-          >
-            Research
-          </Link>
+
           <Link
             className="px-4 py-2 text-gray-400 hover:text-accent-cyan hover:bg-white/5 rounded-sm transition-all text-xs uppercase tracking-widest font-display border border-transparent hover:border-primary/20"
             href="/dashboard"
