@@ -1,0 +1,6 @@
+@echo off
+echo Starting ELORESTEM API...
+start "Backend API" cmd /c "cd ml_service && uvicorn main:app --reload --port 8000"
+echo Starting frontend Next.js server...
+start "Frontend UI" cmd /c "npm run dev"
+echo Both servers started!
