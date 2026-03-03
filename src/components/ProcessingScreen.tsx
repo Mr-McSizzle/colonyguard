@@ -45,7 +45,7 @@ export default function ProcessingScreen() {
 
                     setStage(3); // 'Running CII model inference...'
 
-                    response = await fetch('http://localhost:8000/analyze_images', {
+                    response = await fetch('https://colonyguard.onrender.com/analyze_images', {
                         method: 'POST',
                         body: formData
                     });
@@ -62,7 +62,7 @@ export default function ProcessingScreen() {
 
                     setStage(3); // 'Running CII model inference...'
 
-                    response = await fetch('http://localhost:8000/predict', {
+                    response = await fetch('https://colonyguard.onrender.com/predict', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(samplePayload)
