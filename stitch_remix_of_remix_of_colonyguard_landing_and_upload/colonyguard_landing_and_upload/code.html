@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ColonyGuard - AI-Powered IPSC Instability Detection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#06b6d4", 
+                        "primary-hover": "#0891b2",
+                        "primary-dim": "rgba(6, 182, 212, 0.1)",
+                        "background-dark": "#020408", 
+                        "surface-dark": "#060d16",
+                        "accent-cyan": "#00f0ff",
+                        "bio-green": "#39ff14",
+                        "glass-border": "rgba(0, 240, 255, 0.3)",
+                        "glass-bg": "rgba(6, 13, 22, 0.6)",
+                    },
+                    fontFamily: {
+                        display: ["'Space Mono'", "monospace"],
+                        sans: ["'Inter'", "sans-serif"],
+                    },
+                    backgroundImage: {
+                        'cellular-grid': "radial-gradient(circle, rgba(0, 240, 255, 0.05) 1px, transparent 1px)",
+                    },
+                    animation: {
+                        'pulse-glow': 'pulse-glow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 8s ease-in-out infinite',
+                        'float-reverse': 'float-reverse 9s ease-in-out infinite',
+                        'spin-slow': 'spin 60s linear infinite',
+                        'spin-reverse': 'spin 50s linear infinite reverse',
+                        'scan-vertical': 'scan-vertical 3s linear infinite',
+                        'pulse-nucleus': 'pulse-nucleus 4s ease-in-out infinite',
+                        'membrane-undulate': 'membrane-undulate 8s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        'pulse-glow': {
+                            '0%, 100%': { opacity: '1', boxShadow: '0 0 25px rgba(0, 240, 255, 0.4)' },
+                            '50%': { opacity: '.7', boxShadow: '0 0 10px rgba(0, 240, 255, 0.2)' },
+                        },
+                        'float': {
+                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-10px) rotate(2deg)' },
+                        },
+                        'float-reverse': {
+                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                            '50%': { transform: 'translateY(10px) rotate(-2deg)' },
+                        },
+                        'scan-vertical': {
+                            '0%': { top: '0%', opacity: '0' },
+                            '10%': { opacity: '1' },
+                            '90%': { opacity: '1' },
+                            '100%': { top: '100%', opacity: '0' }
+                        },
+                        'pulse-nucleus': {
+                            '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 40px rgba(57, 255, 20, 0.4)' },
+                            '50%': { transform: 'scale(1.05)', boxShadow: '0 0 60px rgba(57, 255, 20, 0.6)' }
+                        },
+                        'membrane-undulate': {
+                            '0%': { borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' },
+                            '50%': { borderRadius: '30% 60% 70% 40% / 50% 60% 30% 60%' },
+                            '100%': { borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' }
+                        }
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            perspective: 1200px;
+            overflow-x: hidden;
+        }
+        .font-mono {
+            font-family: 'Space Mono', monospace;
+        }
+        .text-glow {
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(57, 255, 20, 0.2);
+        }
+        .glass-panel {
+            background: rgba(10, 17, 32, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+        .microscope-stage {
+            background: linear-gradient(180deg, rgba(13, 22, 35, 0.9) 0%, rgba(5, 9, 16, 0.95) 100%);
+            border: 1px solid rgba(100, 116, 139, 0.2);
+            position: relative;
+        }
+        .microscope-clamp {
+            background: linear-gradient(90deg, #1e293b, #334155, #1e293b);
+            border: 1px solid #475569;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .glass-text-effect {
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.9);
+            background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.4) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.4));
+        }.cell-container {
+            position: relative;
+            transform-style: preserve-3d;
+        }
+        .lipid-bilayer {
+            background: radial-gradient(circle at 35% 35%, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                rgba(0, 240, 255, 0.1) 20%, 
+                rgba(0, 180, 200, 0.4) 60%, 
+                rgba(0, 100, 120, 0.8) 90%,
+                rgba(0, 240, 255, 0.3) 100%);
+            box-shadow: 
+                inset 0 0 40px rgba(0, 240, 255, 0.3), 
+                inset 10px 10px 20px rgba(255, 255, 255, 0.1),
+                0 0 30px rgba(0, 240, 255, 0.2);
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+        .cytoplasm-texture {
+            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2339ff14' fill-opacity='0.05' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
+        }
+        .cell-nucleus {
+            background: radial-gradient(circle at 40% 40%, #cfffcc 0%, #39ff14 40%, #1a8f0b 100%);
+            box-shadow: 0 0 50px rgba(57, 255, 20, 0.5);
+            filter: blur(8px);
+        }
+        .organelle {
+            position: absolute;
+            background: rgba(0, 240, 255, 0.4);
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+            filter: blur(1px);
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        .dna-strand {
+            position: absolute;
+            width: 2px;
+            background: linear-gradient(to bottom, transparent, rgba(0, 240, 255, 0.5), transparent);
+        }.microscope-overlay {
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 3px,
+                rgba(0, 240, 255, 0.03) 4px,
+                rgba(0, 240, 255, 0.03) 5px
+            );
+            pointer-events: none;
+        }
+        .petri-grid {
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
+            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
+        }
+        .dna-helix {
+            width: 40px;
+            height: 120px;
+            border-left: 4px double rgba(57, 255, 20, 0.3);
+            border-right: 4px double rgba(0, 240, 255, 0.3);
+            position: absolute;
+            opacity: 0.4;
+        }
+        .dna-helix::before, .dna-helix::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 0 4px rgba(0,240,255,0.5);
+        }
+        .dna-helix::before { top: 20%; transform: rotate(15deg); }
+        .dna-helix::after { bottom: 20%; transform: rotate(-15deg); }
+    </style>
+</head>
+<body class="bg-background-dark text-gray-200 transition-colors duration-300 min-h-screen relative overflow-x-hidden selection:bg-accent-cyan selection:text-black">
+<div class="fixed inset-0 bg-background-dark -z-50"></div>
+<div class="fixed inset-0 z-0 pointer-events-none opacity-20" style="perspective: 1000px;">
+<div class="absolute inset-0 petri-grid" style="transform: rotateX(20deg) scale(1.5);"></div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[120vw] rounded-full border border-gray-800/30 opacity-20"></div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] rounded-full border border-gray-800/30 opacity-20"></div>
+</div>
+<div class="fixed inset-0 z-50 pointer-events-none microscope-overlay opacity-30"></div>
+<div class="fixed inset-0 pointer-events-none z-0" id="micro-particles">
+<div class="absolute top-1/4 left-1/4 w-1 h-1 bg-bio-green rounded-full blur-[1px] opacity-40 animate-float"></div>
+<div class="absolute bottom-1/3 right-1/4 w-2 h-2 bg-accent-cyan rounded-full blur-[2px] opacity-30 animate-float-reverse"></div>
+<div class="dna-helix top-20 right-20 animate-spin-slow"></div>
+<div class="dna-helix bottom-40 left-20 animate-spin-reverse opacity-20" style="transform: scale(0.6);"></div>
+</div>
+<nav class="relative z-50 w-full px-8 py-6 flex justify-between items-center max-w-7xl mx-auto backdrop-blur-sm border-b border-white/5">
+<div class="flex items-center space-x-3 group cursor-pointer">
+<div class="relative w-10 h-10 flex items-center justify-center">
+<div class="absolute inset-0 bg-primary/20 rounded-full blur-md group-hover:blur-lg transition-all"></div>
+<span class="material-symbols-outlined text-3xl text-bio-green relative z-10">biotech</span>
+</div>
+<span class="font-mono text-xl font-bold tracking-[0.2em] text-white">COLONY<span class="text-bio-green">GUARD</span></span>
+</div>
+<div class="hidden md:flex items-center space-x-1">
+<a class="px-4 py-2 text-gray-400 hover:text-accent-cyan hover:bg-white/5 rounded-sm transition-all text-xs uppercase tracking-widest font-mono border border-transparent hover:border-primary/20" href="#">Platform</a>
+<a class="px-4 py-2 text-gray-400 hover:text-accent-cyan hover:bg-white/5 rounded-sm transition-all text-xs uppercase tracking-widest font-mono border border-transparent hover:border-primary/20" href="#">Research</a>
+<a class="px-4 py-2 text-gray-400 hover:text-accent-cyan hover:bg-white/5 rounded-sm transition-all text-xs uppercase tracking-widest font-mono border border-transparent hover:border-primary/20" href="#">Docs</a>
+<button class="ml-6 px-4 py-2 bg-white/5 hover:bg-accent-cyan/10 border border-white/10 hover:border-accent-cyan/50 text-accent-cyan rounded-sm transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">terminal</span>
+<span class="text-xs font-mono uppercase">Console</span>
+</button>
+</div>
+</nav>
+<main class="relative z-10 max-w-7xl mx-auto px-6 md:px-8 pt-8 md:pt-16 pb-20 flex flex-col items-center justify-center min-h-[85vh]">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 w-full items-center">
+<div class="space-y-10 lg:pr-8 relative z-20">
+<div class="inline-flex items-center space-x-3 px-4 py-2 rounded-sm border border-bio-green/30 bg-bio-green/5 backdrop-blur-md shadow-[0_0_15px_rgba(57,255,20,0.1)]">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-bio-green opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-bio-green"></span>
+</span>
+<span class="text-bio-green text-[10px] font-mono uppercase tracking-[0.2em] font-bold">Incubator Status: Optimal</span>
+<span class="text-accent-cyan/70 text-[10px] font-mono border-l border-white/10 pl-3 ml-1">37.0°C / 5.0% CO2</span>
+</div>
+<div class="space-y-6">
+<h1 class="text-6xl md:text-7xl lg:text-8xl font-bold font-mono tracking-tighter text-white leading-[0.9] glass-text-effect" data-text="COLONY GUARD">
+                        COLONY<br/><span class="text-accent-cyan/90">GUARD</span>
+</h1>
+<div class="flex items-center gap-4">
+<div class="h-px w-12 bg-bio-green shadow-[0_0_10px_#39ff14]"></div>
+<p class="text-cyan-100/80 text-sm md:text-base font-mono uppercase tracking-[0.25em] text-glow">
+                            iPSC Instability Detection
+                        </p>
+</div>
+</div>
+<p class="text-gray-400 max-w-lg leading-relaxed text-lg font-light border-l border-white/10 pl-6">
+                    Advanced AI analysis for high-throughput screening. Detects micro-differentiation and karyotypic anomalies in live stem cell cultures before structural failure.
+                </p>
+<div class="mt-12 relative group drop-zone cursor-pointer perspective-1000">
+<div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-gradient-to-t from-accent-cyan/10 to-transparent blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+<div class="relative microscope-stage rounded-sm p-8 flex flex-col items-center justify-center text-center transition-all duration-300 group-hover:border-accent-cyan/60 group-hover:shadow-[0_0_30px_rgba(0,240,255,0.1)] overflow-hidden">
+<div class="absolute top-1/2 -left-3 w-6 h-12 -translate-y-1/2 microscope-clamp rounded-r-md z-20"></div>
+<div class="absolute top-1/2 -right-3 w-6 h-12 -translate-y-1/2 microscope-clamp rounded-l-md z-20"></div>
+<div class="absolute top-4 left-4 w-4 h-4 border-l border-t border-accent-cyan/50"></div>
+<div class="absolute top-4 right-4 w-4 h-4 border-r border-t border-accent-cyan/50"></div>
+<div class="absolute bottom-4 left-4 w-4 h-4 border-l border-b border-accent-cyan/50"></div>
+<div class="absolute bottom-4 right-4 w-4 h-4 border-r border-b border-accent-cyan/50"></div>
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+<div class="w-full h-px bg-accent-cyan"></div>
+<div class="h-full w-px bg-accent-cyan absolute"></div>
+<div class="w-20 h-20 border border-accent-cyan rounded-full absolute"></div>
+</div>
+<div class="w-16 h-16 relative flex items-center justify-center mb-6 z-10">
+<div class="absolute inset-0 bg-accent-cyan/10 rounded-full blur-xl group-hover:bg-accent-cyan/20 transition-all"></div>
+<span class="material-symbols-outlined text-accent-cyan text-4xl group-hover:scale-110 transition-transform duration-300 drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">science</span>
+</div>
+<h3 class="text-white font-mono text-lg mb-2 tracking-wide z-10">Mount Specimen Slide</h3>
+<p class="text-gray-500 text-xs font-mono uppercase mb-8 tracking-wider z-10">Supported: Phase Contrast, Fluorescence, DIC</p>
+<div class="flex flex-col sm:flex-row gap-4 w-full justify-center z-10">
+<button class="relative overflow-hidden px-6 py-3 rounded-sm border border-accent-cyan/30 text-accent-cyan hover:bg-accent-cyan/10 transition-all duration-300 font-mono text-xs uppercase tracking-widest group/btn backdrop-blur-sm">
+<span class="relative z-10 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">folder_open</span>
+                                    Browse Library
+                                </span>
+</button>
+<button class="relative px-8 py-3 rounded-sm bg-gradient-to-r from-teal-900 to-cyan-900 border border-accent-cyan/50 text-white font-bold font-mono text-xs uppercase tracking-widest hover:border-accent-cyan hover:shadow-[0_0_20px_rgba(0,240,255,0.3)] transition-all duration-300">
+<span class="flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">play_arrow</span>
+                                    Analyze Sample
+                                </span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="relative h-[600px] lg:h-[800px] flex items-center justify-center perspective-1000 z-10">
+<div class="relative w-[400px] h-[400px] md:w-[550px] md:h-[550px] cell-container animate-float preserve-3d">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-bio-green/5 rounded-full blur-[120px] pointer-events-none"></div>
+<div class="absolute inset-0 pointer-events-none z-50">
+<div class="absolute top-0 w-full h-[2px] bg-accent-cyan/80 shadow-[0_0_15px_#00f0ff] animate-scan-vertical z-50 opacity-50"></div>
+<div class="absolute top-10 left-0 text-[10px] text-accent-cyan font-mono px-2 bg-black/40 border-l-2 border-accent-cyan">MAG: 400x</div>
+</div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] h-[85%] animate-membrane-undulate lipid-bilayer overflow-hidden z-20">
+<div class="absolute inset-0 cytoplasm-texture opacity-30"></div>
+<div class="organelle w-16 h-12 top-[25%] left-[25%] rotate-12 bg-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.4)]"></div>
+<div class="organelle w-10 h-10 bottom-[30%] right-[20%] bg-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.4)]"></div>
+<div class="organelle w-8 h-20 top-[40%] right-[25%] rotate-45 bg-yellow-500/10 border border-yellow-500/20"></div>
+<div class="absolute top-[20%] right-[40%] w-12 h-6 border border-red-400/30 rounded-full rotate-[15deg] backdrop-blur-sm">
+<div class="w-full h-full flex justify-around items-center opacity-40">
+<div class="w-px h-4 bg-red-400"></div><div class="w-px h-4 bg-red-400"></div><div class="w-px h-4 bg-red-400"></div>
+</div>
+</div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35%] h-[35%] cell-nucleus rounded-full animate-pulse-nucleus z-30 flex items-center justify-center">
+<div class="w-[80%] h-[80%] border border-white/20 rounded-full opacity-50"></div>
+<div class="absolute top-[35%] left-[40%] w-[25%] h-[25%] bg-white/60 blur-md rounded-full shadow-[0_0_20px_white]"></div>
+</div>
+</div>
+<div class="absolute -right-12 top-20 glass-panel p-3 rounded-sm text-xs font-mono text-accent-cyan border-l-2 border-l-bio-green animate-float-reverse shadow-lg" style="animation-delay: 1s;">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-sm text-bio-green animate-spin-slow">data_usage</span>
+<span class="tracking-widest font-bold text-white">SPECIMEN #442</span>
+</div>
+<div class="space-y-1 text-[10px] text-gray-400">
+<div class="flex justify-between gap-4"><span>LINEAGE</span> <span class="text-white">HeLa-Kyoto</span></div>
+<div class="flex justify-between gap-4"><span>PASSAGE</span> <span class="text-white">P:14</span></div>
+</div>
+</div>
+<div class="absolute -left-16 bottom-24 glass-panel p-3 rounded-sm text-[10px] font-mono text-accent-cyan/80 border-r-2 border-r-accent-cyan animate-float shadow-lg" style="animation-delay: 2s;">
+<div class="mb-1 text-white font-bold tracking-wider flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                             DETECTING ANOMALIES
+                        </div>
+<div class="text-gray-400 mb-1">KARYOTYPE: <span class="text-white">ANALYZING...</span></div>
+<div class="mt-2 w-full h-1 bg-gray-800 rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-bio-green to-accent-cyan w-[65%] animate-[pulse_2s_infinite]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute bottom-6 left-0 right-0 flex justify-center space-x-16 pointer-events-none text-[10px] md:text-xs font-mono text-accent-cyan/60 uppercase tracking-widest hidden md:flex">
+<div class="flex flex-col items-center group">
+<span class="text-white text-lg font-bold group-hover:text-bio-green transition-colors font-sans">98.4%</span>
+<span class="border-t border-accent-cyan/20 pt-1 mt-1">Viability</span>
+</div>
+<div class="w-px h-10 bg-gradient-to-b from-transparent via-accent-cyan/30 to-transparent"></div>
+<div class="flex flex-col items-center group">
+<span class="text-bio-green text-lg font-bold shadow-green-500/20 drop-shadow-sm font-sans">pH 7.4</span>
+<span class="border-t border-accent-cyan/20 pt-1 mt-1">Media Balance</span>
+</div>
+<div class="w-px h-10 bg-gradient-to-b from-transparent via-accent-cyan/30 to-transparent"></div>
+<div class="flex flex-col items-center group">
+<span class="text-white text-lg font-bold group-hover:text-accent-cyan transition-colors font-sans">24h</span>
+<span class="border-t border-accent-cyan/20 pt-1 mt-1">Doubling Time</span>
+</div>
+</div>
+</main>
+<script>
+        // Simple particle system using vanilla JS (just to add some life to the background)
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('micro-particles');
+            const colors = ['#39ff14', '#00f0ff', '#ffffff'];
+            for(let i = 0; i < 20; i++) {
+                const p = document.createElement('div');
+                const size = Math.random() * 3 + 1;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                p.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    background: ${color};
+                    border-radius: 50%;
+                    left: ${Math.random() * 100}%;
+                    top: ${Math.random() * 100}%;
+                    opacity: ${Math.random() * 0.3 + 0.1};
+                    filter: blur(${Math.random() * 2}px);
+                    animation: float ${Math.random() * 10 + 10}s ease-in-out infinite;
+                    animation-delay: -${Math.random() * 10}s;
+                `;
+                container.appendChild(p);
+            }
+        });
+    </script>
+
+</body></html>

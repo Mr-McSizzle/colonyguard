@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ColonyGuard - Detailed Analysis Suite</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#06b6d4", 
+                        "primary-glow": "#22d3ee",
+                        "danger": "#ef4444",
+                        "warning": "#f59e0b",
+                        "success": "#10b981",
+                        "deep-bg": "#0a0f18",
+                        "surface-glass": "rgba(20, 30, 48, 0.6)",
+                        "surface-glass-highlight": "rgba(30, 41, 59, 0.4)"
+                    },
+                    fontFamily: {
+                        sans: ['DM Sans', 'sans-serif'],
+                        mono: ['Space Mono', 'monospace'],
+                    },
+                    borderRadius: {
+                        'xl': '1rem',
+                        '2xl': '1.5rem',
+                        '3xl': '2rem',
+                    },
+                    boxShadow: {
+                        'neon': '0 0 15px rgba(6, 182, 212, 0.4), 0 0 30px rgba(6, 182, 212, 0.1)',
+                        'neon-red': '0 0 15px rgba(239, 68, 68, 0.4), 0 0 30px rgba(239, 68, 68, 0.1)',
+                        'glass-3d': '0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                        'inner-glow': 'inset 0 0 20px rgba(6, 182, 212, 0.05)',
+                    }
+                },
+            },
+        };
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .glass-panel {
+                @apply bg-surface-glass backdrop-blur-xl border border-white/5 shadow-glass-3d relative overflow-hidden;
+                background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            }
+            .glass-panel::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 1px;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            }
+            .chart-grid {
+                background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+                background-size: 30px 30px;
+            }
+            .neon-text {
+                text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+            }
+            .neon-text-red {
+                text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+            }.custom-scrollbar::-webkit-scrollbar {
+                width: 6px;}
+            .custom-scrollbar::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: #06b6d4;
+                border-radius: 4px;
+                box-shadow: 0 0 10px rgba(6, 182, 212, 0.8), 0 0 20px rgba(6, 182, 212, 0.4);border: 1px solid rgba(255,255,255,0.1);
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: #22d3ee;
+            }
+        }
+        body {
+            background: #0a0f18;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(6, 182, 212, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08), transparent 25%);
+            background-attachment: fixed;}
+    </style>
+</head>
+<body class="text-gray-100 font-sans h-screen flex flex-col overflow-hidden selection:bg-primary selection:text-white">
+<header class="h-16 border-b border-white/5 bg-[#0a0f18]/90 backdrop-blur-md flex items-center justify-between px-6 z-50 shrink-0 fixed top-0 w-full shadow-lg">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-3xl neon-text">biotech</span>
+<span class="font-bold text-xl tracking-tight text-white">ColonyGuard</span>
+</div>
+<div class="h-6 w-px bg-white/10 mx-2"></div>
+<nav class="flex gap-1">
+<a class="px-3 py-1.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-colors" href="#">Dashboard</a>
+<a class="px-3 py-1.5 text-sm text-white bg-white/5 border border-white/10 rounded-md transition-colors font-medium" href="#">Analysis</a>
+<a class="px-3 py-1.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-colors" href="#">Archive</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-full">
+<span class="w-2 h-2 bg-danger rounded-full animate-pulse shadow-neon-red"></span>
+<span class="text-xs font-mono font-bold text-danger tracking-wider">SYSTEM ALERT ACTIVE</span>
+</div>
+<div class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 border border-white/20 shadow-lg"></div>
+</div>
+</header>
+<main class="flex-1 flex flex-col pt-20 pb-24 px-6 overflow-hidden relative z-10 max-w-[1920px] mx-auto w-full h-full gap-6">
+<div class="w-full shrink-0 flex items-center justify-between glass-panel rounded-2xl p-6 h-24">
+<div class="flex items-center gap-6">
+<div class="w-2 h-12 bg-danger rounded-full shadow-neon-red"></div>
+<div>
+<h1 class="text-3xl font-bold tracking-tight text-white flex items-center gap-4 font-mono">
+                    COL_006
+                    <span class="px-3 py-1 rounded text-sm font-bold bg-danger/10 text-danger border border-danger/30 uppercase tracking-widest shadow-neon-red">Critical Status</span>
+</h1>
+<div class="flex items-center gap-4 mt-1 text-gray-400 text-sm font-mono">
+<span>ID: IPSC-2023-X</span>
+<span class="text-gray-600">•</span>
+<span>BATCH #8922</span>
+<span class="text-gray-600">•</span>
+<span>T: +48h 12m</span>
+</div>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="p-3 bg-surface-glass-highlight hover:bg-white/10 text-gray-300 rounded-xl border border-white/5 transition-all">
+<span class="material-symbols-outlined">share</span>
+</button>
+<button class="p-3 bg-surface-glass-highlight hover:bg-white/10 text-gray-300 rounded-xl border border-white/5 transition-all">
+<span class="material-symbols-outlined">print</span>
+</button>
+<button class="p-3 bg-surface-glass-highlight hover:bg-white/10 text-gray-300 rounded-xl border border-white/5 transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</div>
+<div class="flex-1 grid grid-cols-12 gap-6 min-h-0 overflow-hidden h-full">
+<div class="col-span-12 lg:col-span-4 h-full relative">
+<div class="absolute inset-0 overflow-y-auto custom-scrollbar pr-4 pb-4 flex flex-col gap-6">
+<div class="grid grid-cols-2 gap-4 shrink-0">
+<div class="glass-panel rounded-2xl p-5 flex flex-col justify-between group relative min-h-[140px]">
+<div class="absolute inset-0 bg-gradient-to-br from-danger/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex justify-between items-start">
+<span class="text-gray-400 text-xs uppercase tracking-wider font-bold font-mono">Diff. Risk</span>
+<span class="material-symbols-outlined text-gray-600 group-hover:text-danger transition-colors">psychology</span>
+</div>
+<div>
+<div class="text-4xl font-bold text-danger font-mono tracking-tighter neon-text-red">81%</div>
+<div class="w-full bg-gray-800/50 h-1.5 mt-4 rounded-full overflow-hidden backdrop-blur-sm">
+<div class="bg-danger h-full w-[81%] shadow-neon-red relative">
+<div class="absolute right-0 top-0 bottom-0 w-1 bg-white/50"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="glass-panel rounded-2xl p-5 flex flex-col justify-between group relative min-h-[140px]">
+<div class="absolute inset-0 bg-gradient-to-br from-warning/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex justify-between items-start">
+<span class="text-gray-400 text-xs uppercase tracking-wider font-bold font-mono">Morph. Dev</span>
+<span class="material-symbols-outlined text-gray-600 group-hover:text-warning transition-colors">insights</span>
+</div>
+<div>
+<div class="text-4xl font-bold text-warning font-mono tracking-tighter" style="text-shadow: 0 0 10px rgba(245, 158, 11, 0.4);">HIGH</div>
+<div class="flex gap-1.5 mt-4">
+<div class="h-1.5 flex-1 rounded-full bg-warning shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
+<div class="h-1.5 flex-1 rounded-full bg-warning/50"></div>
+<div class="h-1.5 flex-1 rounded-full bg-warning/20"></div>
+</div>
+</div>
+</div>
+</div>
+<button class="glass-panel rounded-2xl p-6 w-full relative group overflow-hidden border-danger/30 hover:border-danger/60 transition-all shadow-[0_0_20px_rgba(239,68,68,0.1)] shrink-0">
+<div class="absolute inset-0 bg-gradient-to-r from-danger/10 via-transparent to-transparent opacity-50 group-hover:opacity-80 transition-opacity"></div>
+<div class="relative z-10 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="p-3 rounded-xl bg-danger/20 text-danger border border-danger/20 shadow-neon-red">
+<span class="material-symbols-outlined">back_hand</span>
+</div>
+<div class="text-left">
+<div class="text-danger text-xs font-bold uppercase tracking-widest mb-0.5">Recommendation</div>
+<div class="text-2xl font-bold text-white tracking-tight">Intervene Immediately</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all">arrow_forward_ios</span>
+</div>
+</button>
+<div class="glass-panel rounded-2xl p-6 flex flex-col min-h-[250px] shrink-0">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-white font-semibold text-lg tracking-tight">Morphology Timeline</h3>
+<p class="text-gray-500 text-xs font-mono mt-1">Growth Patterns: Day 2 - Day 4</p>
+</div>
+<div class="flex gap-2 text-[10px] font-mono">
+<span class="text-cyan-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-neon"></span>Comp</span>
+<span class="text-purple-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.4)]"></span>Entr</span>
+<span class="text-red-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-400 shadow-neon-red"></span>CII</span>
+</div>
+</div>
+<div class="flex-1 w-full relative chart-grid rounded-lg overflow-hidden p-2 border border-white/5 bg-black/20 shadow-inner-glow">
+<canvas id="morphologyTimelineChart"></canvas>
+</div>
+</div>
+<div class="glass-panel rounded-2xl p-6 flex flex-col min-h-[340px] shrink-0">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-white font-semibold text-lg tracking-tight">CII Component Breakdown</h3>
+<p class="text-gray-500 text-xs font-mono mt-1">REAL-TIME FACTOR ANALYSIS</p>
+</div>
+<button class="text-gray-500 hover:text-white"><span class="material-symbols-outlined text-sm">more_horiz</span></button>
+</div>
+<div class="flex-1 flex flex-col justify-start space-y-6">
+<div class="group">
+<div class="flex justify-between text-xs mb-2 items-end">
+<span class="text-gray-300 font-medium group-hover:text-white transition-colors">Edge Roughness</span>
+<span class="text-warning font-mono bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20 text-[10px]">HIGH</span>
+</div>
+<div class="w-full bg-gray-800/50 h-3 rounded-sm overflow-hidden border border-white/5">
+<div class="bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 h-full w-[85%] relative shadow-[0_0_10px_rgba(239,68,68,0.3)]">
+<div class="absolute right-0 top-0 bottom-0 w-[2px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></div>
+</div>
+</div>
+<div class="flex justify-between text-[10px] text-gray-600 mt-1 font-mono">
+<span>Ref: 0.45</span>
+<span>0.76</span>
+</div>
+</div>
+<div class="group">
+<div class="flex justify-between text-xs mb-2 items-end">
+<span class="text-gray-300 font-medium group-hover:text-white transition-colors">Fragmentation</span>
+<span class="text-danger font-mono bg-danger/10 px-1.5 py-0.5 rounded border border-danger/20 text-[10px]">CRITICAL</span>
+</div>
+<div class="w-full bg-gray-800/50 h-3 rounded-sm overflow-hidden border border-white/5">
+<div class="bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 h-full w-[92%] relative shadow-[0_0_10px_rgba(239,68,68,0.3)]">
+<div class="absolute right-0 top-0 bottom-0 w-[2px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></div>
+</div>
+</div>
+<div class="flex justify-between text-[10px] text-gray-600 mt-1 font-mono">
+<span>Ref: 0.20</span>
+<span>0.92</span>
+</div>
+</div>
+<div class="group">
+<div class="flex justify-between text-xs mb-2 items-end">
+<span class="text-gray-300 font-medium group-hover:text-white transition-colors">Nucleus Density</span>
+<span class="text-warning font-mono bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20 text-[10px]">ELEVATED</span>
+</div>
+<div class="w-full bg-gray-800/50 h-3 rounded-sm overflow-hidden border border-white/5">
+<div class="bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 h-full w-[65%] relative">
+<div class="absolute right-0 top-0 bottom-0 w-[2px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></div>
+</div>
+</div>
+<div class="flex justify-between text-[10px] text-gray-600 mt-1 font-mono">
+<span>Ref: 0.50</span>
+<span>0.65</span>
+</div>
+</div>
+<div class="group">
+<div class="flex justify-between text-xs mb-2 items-end">
+<span class="text-gray-300 font-medium group-hover:text-white transition-colors">Membrane Integrity</span>
+<span class="text-success font-mono bg-success/10 px-1.5 py-0.5 rounded border border-success/20 text-[10px]">STABLE</span>
+</div>
+<div class="w-full bg-gray-800/50 h-3 rounded-sm overflow-hidden border border-white/5">
+<div class="bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 h-full w-[25%] relative">
+<div class="absolute right-0 top-0 bottom-0 w-[2px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></div>
+</div>
+</div>
+<div class="flex justify-between text-[10px] text-gray-600 mt-1 font-mono">
+<span>Ref: 0.15</span>
+<span>0.25</span>
+</div>
+</div>
+</div>
+</div>
+<div class="h-4 w-full"></div>
+</div>
+</div>
+<div class="col-span-12 lg:col-span-8 h-full flex flex-col relative">
+<div class="glass-panel rounded-2xl p-1 w-full h-full relative group overflow-hidden border border-white/10 shadow-glass-3d">
+<div class="relative w-full h-full bg-black rounded-xl overflow-hidden">
+<img alt="Microscope view of cells" class="w-full h-full object-cover opacity-80 mix-blend-overlay scale-105 group-hover:scale-100 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQfu2TM1YEe5p5zZ5WWyrKiyEetwZ8kt_lmILQuHqrPi6sjVTnoffA1kU34HWQirF--0OWAm5ucT72_R7ORkSSI7GbERB_1XAKYT4E2K560KF4mjJYRMD4WF7rdRiD-jwyg3T3-lgOa1FNkVTS_zlLQWQCuGa-sSL2a6yiYa6iSbREpkfVZ2jRMCkl2iou8Uc6IwoH4zBT7nvOE5Y3i44rzlKLzQd02djKiDN9KGdappw4sETrbk9M-baN-wzT1OYDRA8jpFCadhfq"/>
+<div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CjxwYXRoIGQ9Ik0gNDAgMCBMIDAgMCAwIDQwIiBmaWxsPSJub25lIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIgc3Ryb2tlLXdpZHRoPSIxIi8+Cjwvc3ZnPg==')] opacity-20 mix-blend-screen pointer-events-none"></div>
+<div class="absolute inset-0 p-6 flex flex-col justify-between pointer-events-none">
+<div class="flex justify-between items-start">
+<div class="flex gap-3">
+<span class="bg-red-500/20 backdrop-blur-md border border-red-500/50 text-red-400 text-xs px-3 py-1.5 rounded font-bold animate-pulse shadow-neon-red flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-red-500"></span> LIVE
+                                </span>
+<span class="bg-black/40 backdrop-blur-md border border-white/10 text-cyan-400 text-xs px-3 py-1.5 rounded font-mono shadow-neon border-cyan-500/30">40x OPTICAL</span>
+</div>
+<div class="flex flex-col items-end gap-1">
+<div class="text-xs font-mono text-cyan-500/80">ISO 800 • 1/200s</div>
+<div class="text-xs font-mono text-cyan-500/80">TEMP: 37.2°C</div>
+</div>
+</div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-48 border-2 border-danger/80 rounded-lg shadow-[0_0_30px_rgba(239,68,68,0.3)] flex items-end justify-center pb-4 backdrop-blur-[2px]">
+<div class="absolute top-0 left-0 w-full h-[1px] bg-red-500/50 animate-[scan_2s_ease-in-out_infinite]"></div>
+<span class="bg-danger text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg tracking-wider">INSTABILITY DETECTED</span>
+<div class="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]"></div>
+<div class="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]"></div>
+<div class="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]"></div>
+<div class="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]"></div>
+</div>
+<div class="flex justify-between items-end">
+<div class="text-sm text-white/80 font-mono bg-black/40 px-3 py-1 rounded border border-white/10 backdrop-blur-sm">
+                                SOURCE: Incubator 3, Tray B
+                            </div>
+<div class="pointer-events-auto flex gap-2">
+<button class="bg-black/40 hover:bg-white/10 border border-white/20 text-white p-2 rounded-lg backdrop-blur-md transition-colors">
+<span class="material-symbols-outlined text-lg">filter_center_focus</span>
+</button>
+<button class="bg-black/40 hover:bg-white/10 border border-white/20 text-white p-2 rounded-lg backdrop-blur-md transition-colors">
+<span class="material-symbols-outlined text-lg">videocam</span>
+</button>
+<button class="bg-black/40 hover:bg-white/10 border border-white/20 text-white p-2 rounded-lg backdrop-blur-md transition-colors">
+<span class="material-symbols-outlined text-lg">fullscreen</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed bottom-0 left-0 right-0 z-50 pointer-events-none p-6">
+<footer class="max-w-[1920px] mx-auto w-full glass-panel rounded-2xl border-t border-white/10 flex items-center justify-between px-8 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] bg-[#0a0f18]/90 pointer-events-auto h-20">
+<div class="flex items-center gap-4">
+<button class="text-gray-400 hover:text-white text-sm font-medium px-6 py-2.5 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-gray-600 font-mono uppercase tracking-wide">
+                Ignore Alert
+            </button>
+<button class="text-gray-400 hover:text-white text-sm font-medium px-6 py-2.5 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-gray-600 font-mono uppercase tracking-wide">
+                Add Note
+            </button>
+</div>
+<div class="flex gap-4">
+<button class="flex items-center gap-2 bg-surface-glass hover:bg-white/10 text-white border border-white/10 px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-xl">
+<span class="material-symbols-outlined text-lg">picture_as_pdf</span>
+                Export Report
+            </button>
+<button class="flex items-center gap-3 bg-primary hover:bg-cyan-400 text-black px-8 py-3 rounded-xl text-sm font-bold shadow-neon transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+<span class="material-symbols-outlined text-lg">science</span>
+                Initialize Protocol
+                <span class="material-symbols-outlined text-lg">arrow_forward</span>
+</button>
+</div>
+</footer>
+</div>
+<script>
+    // Chart Configuration for the New Timeline
+    const timelineCtx = document.getElementById('morphologyTimelineChart').getContext('2d');
+    // Gradients
+    let gradCyan = timelineCtx.createLinearGradient(0, 0, 0, 300);
+    gradCyan.addColorStop(0, 'rgba(6, 182, 212, 0.4)');
+    gradCyan.addColorStop(1, 'rgba(6, 182, 212, 0)');
+    let gradPurple = timelineCtx.createLinearGradient(0, 0, 0, 300);
+    gradPurple.addColorStop(0, 'rgba(168, 85, 247, 0.4)');
+    gradPurple.addColorStop(1, 'rgba(168, 85, 247, 0)');
+    let gradRed = timelineCtx.createLinearGradient(0, 0, 0, 300);
+    gradRed.addColorStop(0, 'rgba(239, 68, 68, 0.4)');
+    gradRed.addColorStop(1, 'rgba(239, 68, 68, 0)');
+    const timelineChart = new Chart(timelineCtx, {
+        type: 'line',
+        data: {
+            labels: ['Day 2 - 08:00', '12:00', '16:00', '20:00', 'Day 3 - 08:00', '12:00', '16:00', '20:00', 'Day 4 - 08:00', 'NOW'],
+            datasets: [
+                {
+                    label: 'Compactness',
+                    data: [45, 48, 50, 52, 55, 60, 58, 65, 70, 72],
+                    borderColor: '#06b6d4',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    pointBackgroundColor: '#06b6d4'
+                },
+                {
+                    label: 'Entropy',
+                    data: [30, 32, 35, 40, 42, 45, 50, 55, 65, 75],
+                    borderColor: '#a855f7',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    pointBackgroundColor: '#a855f7'
+                },
+                {
+                    label: 'CII Score',
+                    data: [20, 22, 25, 28, 35, 45, 60, 80, 88, 92],
+                    borderColor: '#ef4444',
+                    backgroundColor: gradRed,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#0a0f18',
+                    pointBorderColor: '#ef4444',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: {
+                    display: false 
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(10, 15, 24, 0.95)',
+                    titleColor: '#fff',
+                    bodyColor: '#cbd5e1',
+                    titleFont: { family: "'Space Mono', monospace" },
+                    bodyFont: { family: "'DM Sans', sans-serif" },
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    borderWidth: 1,
+                    padding: 10,
+                    boxPadding: 4,
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.02)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#64748b',
+                        font: {
+                            family: "'Space Mono', monospace",
+                            size: 10
+                        },
+                        maxRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: 4
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.05)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        display: false
+                    },
+                    suggestedMin: 0,
+                    suggestedMax: 100
+                }
+            }
+        }
+    });
+</script>
+
+</body></html>

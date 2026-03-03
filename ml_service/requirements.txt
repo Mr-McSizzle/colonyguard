@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+scikit-learn
+pandas
+python-multipart
+pydantic
+opencv-python-headless
+scikit-image
+xgboost

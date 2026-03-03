@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Scrollable 3D Validation Suite - ColonyGuard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;400;500;600;700&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        deep: "#0a0f18",
+                        primary: "#06b6d4",
+                        "primary-glass": "rgba(6, 182, 212, 0.15)",
+                        danger: "#ef4444",
+                        "danger-glass": "rgba(239, 68, 68, 0.15)",
+                        success: "#10b981",
+                        "success-glass": "rgba(16, 185, 129, 0.15)",
+                        glass: "rgba(255, 255, 255, 0.03)",
+                        "glass-border": "rgba(255, 255, 255, 0.08)",
+                    },
+                    fontFamily: {
+                        sans: ["DM Sans", "sans-serif"],
+                        mono: ["Space Mono", "monospace"],
+                    },
+                    boxShadow: {
+                        'glass-lg': '0 8px 32px 0 rgba(0, 0, 0, 0.36)',
+                        'glass-3d': '0 20px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.01)',
+                        'neon-primary': '0 0 15px rgba(6, 182, 212, 0.4), 0 0 30px rgba(6, 182, 212, 0.1)',
+                        'neon-danger': '0 0 15px rgba(239, 68, 68, 0.4), 0 0 30px rgba(239, 68, 68, 0.1)',
+                        'neon-success': '0 0 15px rgba(16, 185, 129, 0.4), 0 0 30px rgba(16, 185, 129, 0.1)',
+                        'inner-light': 'inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)",
+                        'vignette': 'radial-gradient(circle, rgba(10,15,24,0) 50%, rgba(10,15,24,0.95) 100%)',
+                        'glass-gradient': 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%)',
+                        'glass-slab-gradient': 'linear-gradient(170deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.2) 100%)',
+                        'danger-gradient': 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.02) 100%)',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'scan': 'scan 3s linear infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        scan: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(100%)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            background-color: #0a0f18;
+            color: #e2e8f0;
+            overflow: hidden;
+            height: 100vh;
+        }
+        .cellular-lattice {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.03) 2px, transparent 2px),
+                radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.02) 4px, transparent 4px);
+            background-size: 60px 60px, 160px 160px;
+            z-index: -2;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+            animation: bg-drift 120s linear infinite;
+        }
+        @keyframes bg-drift {
+            from { background-position: 0 0, 0 0; }
+            to { background-position: 100% 100%, 50% 50%; }
+        }
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 1.343 3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 1.79 4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 1.79 4 4 1.79 4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 1.79 4 4 1.79 4 4 1.79 4 4 1.79 4 4 4zm29 22c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 1.79 4 4 1.79 4 4 1.79 4 4 1.79 4 4 1.79 4 4 4zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 2.24 5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 2.24 5 5 2.24 5 5 2.24 5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .glass-panel-heavy {
+            background: rgba(10, 15, 24, 0.75);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glass-slab-3d {
+            background: linear-gradient(160deg, rgba(255,255,255,0.05) 0%, rgba(10,15,24,0.4) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 15px 35px rgba(0,0,0,0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 0 20px rgba(255,255,255,0.02);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .glass-slab-3d:hover {
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15),
+                inset 0 0 20px rgba(255,255,255,0.04);
+        }
+        .glass-slab-danger {
+            background: linear-gradient(160deg, rgba(239, 68, 68, 0.05) 0%, rgba(10,15,24,0.6) 100%);
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.1), inset 0 0 20px rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-top: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .text-glow-primary { text-shadow: 0 0 15px rgba(6, 182, 212, 0.8), 0 0 30px rgba(6, 182, 212, 0.4); }
+        .text-glow-danger { text-shadow: 0 0 15px rgba(239, 68, 68, 0.8), 0 0 30px rgba(239, 68, 68, 0.4); }
+        .text-glow-success { text-shadow: 0 0 15px rgba(16, 185, 129, 0.8), 0 0 30px rgba(16, 185, 129, 0.4); }
+        .scanning-bar {
+            background: linear-gradient(to bottom, transparent, rgba(6, 182, 212, 0.8), transparent);
+            height: 3px;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 1);
+            opacity: 0.8;
+            pointer-events: none;
+            z-index: 20;
+        }
+        .scanning-bar-danger {
+            background: linear-gradient(to bottom, transparent, rgba(239, 68, 68, 0.8), transparent);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 1);
+        }
+        .tech-scanline {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.4));
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+        .nav-glass {
+            background: rgba(10, 15, 24, 0.85);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+        }.custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(10, 15, 24, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #06b6d4;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #22d3ee;
+        }
+        .micro-img-container img {
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="font-sans h-screen flex flex-col antialiased relative selection:bg-primary selection:text-black overflow-hidden">
+<div class="cellular-lattice"></div>
+<div class="particles"></div>
+<div class="fixed inset-0 bg-vignette pointer-events-none z-0"></div>
+<header class="h-12 glass-panel-heavy sticky top-0 z-50 flex-none border-b border-white/5">
+<div class="max-w-[1440px] mx-auto h-full flex items-center justify-between px-4">
+<div class="flex items-center space-x-3">
+<button class="p-1 rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white border border-transparent hover:border-glass-border group">
+<span class="material-symbols-outlined text-lg group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
+</button>
+<div class="flex items-center gap-3">
+<h1 class="text-sm font-bold tracking-widest text-white flex items-center gap-2 font-mono uppercase">
+<span class="relative flex h-3 w-3 items-center justify-center">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-20"></span>
+<span class="material-symbols-outlined text-primary text-sm relative z-10 text-glow-primary">science</span>
+</span>
+<span class="bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-500 drop-shadow-sm">Val. Suite</span>
+</h1>
+<div class="h-4 w-px bg-white/10"></div>
+<p class="text-[10px] text-primary/70 font-mono tracking-widest uppercase truncate">BATCH: IPSC-2023-X // ID: COL-482-A</p>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<div class="hidden md:flex items-center space-x-2 px-2 py-0.5 rounded-full bg-black/40 border border-primary/20 shadow-neon-primary backdrop-blur-sm">
+<span class="relative flex h-1.5 w-1.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
+</span>
+<span class="text-[8px] font-mono font-bold text-primary tracking-widest">ONLINE</span>
+</div>
+<button class="p-1 rounded-full hover:bg-white/5 transition-colors text-slate-400 hover:text-white">
+<span class="material-symbols-outlined text-base">settings</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-[1440px] mx-auto w-full relative z-10 overflow-y-auto custom-scrollbar flex flex-col h-[calc(100vh-3rem-3.5rem)] px-4 py-3">
+<div class="flex-none mb-6 relative group">
+<div class="absolute inset-0 bg-danger/5 rounded-xl blur-2xl transition-all duration-500 group-hover:bg-danger/10 -z-10"></div>
+<div class="relative glass-slab-danger rounded-xl p-3 overflow-hidden transform perspective-1000">
+<div class="absolute top-0 right-0 w-48 h-48 bg-danger/20 blur-[60px] rounded-full pointer-events-none mix-blend-screen"></div>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 relative z-10">
+<div class="flex-1 pl-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="bg-danger/20 text-danger border border-danger/40 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded uppercase tracking-widest shadow-neon-danger animate-pulse">High Risk</span>
+<span class="text-[9px] text-slate-400 font-mono tracking-wider opacity-70">REF ID: COL-482-A</span>
+</div>
+<h2 class="text-xl font-bold text-white mb-0.5 tracking-tight drop-shadow-xl font-mono">Colony Instability Detected</h2>
+<p class="text-slate-300 max-w-xl font-light text-xs leading-tight tracking-wide truncate">
+                            Micro-fragmentation patterns detected <span class="text-danger font-medium text-glow-danger">72h</span> prior to critical failure event.
+                        </p>
+</div>
+<div class="flex gap-3 pr-1">
+<div class="bg-black/20 border border-white/5 px-3 py-1.5 rounded-lg min-w-[100px] relative backdrop-blur-md hover:bg-white/5 transition-all">
+<div class="absolute -top-1 -right-1 w-1.5 h-1.5 bg-primary rounded-full shadow-neon-primary opacity-50"></div>
+<div class="text-[8px] text-slate-400 font-mono font-bold uppercase tracking-wider mb-0.5">Lead Time</div>
+<div class="text-xl font-mono font-bold text-white tracking-tighter text-glow-primary lh-1">72<span class="text-[9px] font-sans font-normal text-slate-500 ml-0.5">hrs</span></div>
+</div>
+<div class="bg-black/20 border border-white/5 px-3 py-1.5 rounded-lg min-w-[100px] relative backdrop-blur-md hover:bg-white/5 transition-all">
+<div class="absolute -top-1 -right-1 w-1.5 h-1.5 bg-success rounded-full shadow-neon-success opacity-50"></div>
+<div class="text-[8px] text-slate-400 font-mono font-bold uppercase tracking-wider mb-0.5">Accuracy</div>
+<div class="text-xl font-mono font-bold text-white tracking-tighter text-glow-success lh-1">98.4<span class="text-[9px] font-sans font-normal text-slate-500 ml-0.5">%</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex-none flex items-center justify-center mb-6">
+<div class="bg-black/60 backdrop-blur-xl border border-white/10 p-0.5 rounded-lg inline-flex relative shadow-inner scale-100">
+<div class="absolute inset-0 rounded-lg bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+<div class="w-1/2 h-[calc(100%-0.25rem)] absolute left-0.5 top-0.5 bg-gradient-to-t from-primary/10 to-primary/20 border border-primary/30 rounded shadow-neon-primary transition-all duration-300"></div>
+<button class="relative z-10 px-8 py-2 text-[10px] font-mono font-bold text-white tracking-wider rounded transition-colors hover:text-primary">
+                    UNSTABLE
+                </button>
+<button class="relative z-10 px-8 py-2 text-[10px] font-mono font-bold text-slate-500 hover:text-slate-300 tracking-wider transition-colors">
+                    STABLE
+                </button>
+</div>
+</div>
+<div class="flex-none grid grid-cols-2 gap-6 min-h-[400px] mb-8">
+<div class="glass-slab-3d rounded-lg p-3 flex flex-col border-l-2 border-l-danger h-full">
+<div class="px-2 py-2 border-b border-white/5 flex justify-between items-center bg-danger/5 mb-4">
+<h3 class="text-xs font-bold text-danger flex items-center gap-2 tracking-wide font-mono">
+<span class="flex h-2 w-2 relative">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-danger opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-danger"></span>
+</span>
+                        COLONY A (HIGH RISK)
+                    </h3>
+<span class="text-[9px] text-danger/60 font-mono">ID: #8821-X</span>
+</div>
+<div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 overflow-hidden items-center justify-center">
+<div class="flex flex-col items-center h-full justify-center">
+<div class="relative w-full aspect-square max-w-[240px] rounded-full overflow-hidden group border-2 border-white/10 bg-black shadow-lg">
+<div class="absolute top-4 left-0 right-0 z-20 flex justify-center">
+<span class="px-2 py-0.5 bg-black/60 backdrop-blur text-[9px] font-mono text-primary border border-primary/30 rounded-full">T-72H</span>
+</div>
+<img alt="Microscope view of cells Day 3" class="w-full h-full object-cover opacity-70 mix-blend-screen group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbtW-yjXcd5lylDWb7LfQTIC0ciyycM9tdabBiYkU2LfrpWTKqFxMtFEARf2wuIDgFrpOWWgivVOmwSC3O8WlmONJ3aRfvxS2tRbQYWJS0xJuYcDFsrPqgMeR1pNyVCffL-_h9OvT1iwVvNiOkSMRVdtPHRGnr8cIkF7J0yxXtOKFxEYJcYugneKPCWmITRj1CsCTK6572eci-3Oe1EmZBC70pIovfnzhWvI9zSbv601XCxs0oAiSJacvPDQy4Cy7tStlys0HYconN"/>
+<div class="absolute inset-0 tech-scanline z-10 pointer-events-none opacity-50 rounded-full"></div>
+<div class="scanning-bar animate-scan z-20"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10 pointer-events-none rounded-full"></div>
+</div>
+<div class="mt-3 text-[10px] font-mono text-slate-300 text-center">Day 3: AI Detection Phase</div>
+</div>
+<div class="flex flex-col items-center h-full justify-center">
+<div class="relative w-full aspect-square max-w-[240px] rounded-full overflow-hidden group border-2 border-danger/30 bg-black shadow-neon-danger">
+<div class="absolute top-4 left-0 right-0 z-20 flex justify-center">
+<span class="px-2 py-0.5 bg-danger/20 backdrop-blur text-[9px] font-bold font-mono text-danger border border-danger/30 rounded-full animate-pulse">T-ZERO</span>
+</div>
+<img alt="Microscope view of fragmented cells Day 6" class="w-full h-full object-cover opacity-90 mix-blend-screen contrast-125 sepia-[.4] hue-rotate-[-40deg] group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0CVMxpxbCrpv61fA_McGoYp0yAd9b5uVFXF3zZCoQL0p3AcQeMAtKOHLYR5JFJeC-_EExDn071530Gq_j7IlFdDJFa3CSzrYdaot9Z6_YRWiX48phSJ3y2f-GrlE6oyAhmtiIUsuEdE9Ww9s3-5M2rmplv2843nli-bOOn84Kk8zPZcJTxa8Q7rxmyzxLTdqzxEPaASws44DfWSVVHsVb36W8GAeN8v3iuae-dJMgFGNafmkwb5yFLrlp2FyzI7J3sDRsImOZrisX"/>
+<div class="absolute inset-0 tech-scanline z-10 pointer-events-none rounded-full"></div>
+<div class="scanning-bar scanning-bar-danger animate-scan z-20" style="animation-duration: 2s;"></div>
+<div class="absolute inset-0 bg-danger/10 mix-blend-overlay z-10 pointer-events-none rounded-full"></div>
+<div class="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+<div class="bg-black/80 backdrop-blur border border-danger/60 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+<span class="material-symbols-outlined text-danger text-sm animate-pulse">broken_image</span>
+<span class="text-danger font-mono font-bold tracking-[0.2em] text-[9px] text-glow-danger">FAILURE</span>
+</div>
+</div>
+</div>
+<div class="mt-3 text-[10px] font-mono text-danger text-center font-bold">Day 6: Critical Failure</div>
+</div>
+</div>
+</div>
+<div class="glass-slab-3d rounded-lg p-3 flex flex-col border-l-2 border-l-success h-full">
+<div class="px-2 py-2 border-b border-white/5 flex justify-between items-center bg-success/5 mb-4">
+<h3 class="text-xs font-bold text-success flex items-center gap-2 tracking-wide font-mono">
+<span class="w-2 h-2 rounded-full bg-success shadow-neon-success"></span>
+                        COLONY B (CONTROL)
+                    </h3>
+<span class="text-[9px] text-success/60 font-mono">ID: #9921-C</span>
+</div>
+<div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 overflow-hidden items-center justify-center">
+<div class="flex flex-col items-center h-full justify-center">
+<div class="relative w-full aspect-square max-w-[240px] rounded-full overflow-hidden group border-2 border-white/5 bg-black">
+<div class="absolute top-4 left-0 right-0 z-20 flex justify-center">
+<span class="px-2 py-0.5 bg-black/60 backdrop-blur text-[9px] font-mono text-success border border-success/20 rounded-full">Baseline</span>
+</div>
+<img alt="Microscope view of healthy cells Day 3" class="w-full h-full object-cover opacity-60 mix-blend-luminosity group-hover:opacity-80 transition-opacity duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuByWXxGp4TrXJsy0SZD2DkMehm2Cy4UJtAP_BHBoJxnFFys15JT6DY6GAAeO3E34h1SHzTxDIShPvtm-4lsfCEHMzRoTee8ckm8qQrzED9vFXl0UwIPB4ymWDXwXT5sdTbtiWJ1Wj9262scqxcNSoge-Fks6PAyuWDJYNYNXw1IrkiYlRPek-gRgKNNx8Y51UrwSx8Cf5hK8Hw3Cy275A7Q9RlqzXPoRH5IvepBsVm3YZy-EaL0ee5TubXKsj-rH4xorNboqiokNg1G"/>
+<div class="absolute inset-0 bg-success/5 mix-blend-overlay z-10 pointer-events-none rounded-full"></div>
+<div class="absolute inset-0 tech-scanline z-10 pointer-events-none opacity-30 rounded-full"></div>
+</div>
+<div class="mt-3 text-[10px] font-mono text-slate-400 text-center">Day 3: Normal Growth</div>
+</div>
+<div class="flex flex-col items-center h-full justify-center">
+<div class="relative w-full aspect-square max-w-[240px] rounded-full overflow-hidden group border-2 border-white/5 bg-black">
+<div class="absolute top-4 left-0 right-0 z-20 flex justify-center">
+<span class="px-2 py-0.5 bg-black/60 backdrop-blur text-[9px] font-mono text-success border border-success/20 rounded-full">Growth Phase</span>
+</div>
+<img alt="Microscope view of healthy cells Day 6" class="w-full h-full object-cover opacity-70 mix-blend-luminosity group-hover:opacity-90 transition-opacity duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiU8ZR4VsxyE6V2wCFK-qt3yZ-mS42TUx_VowlhUCxrMPhTHHptbiti_ElH7HF9OI6eEor3bA5gYN041cC65lM1-19wv--OyiRqCoXyW58UEomMnKKy7FPDeNz_GVxKjHf0FLZV8fSxgS1XhsFgcb7WhQGNjVwsPtWKQmrIti-w0TUHfJORzST6YWxu2uOF16EbnHJDqb80hz_ruBs5wN-ZIDeDy3RnnM4ldQNcMjeYiZtm3SZ7DdeGBDnHuv1FI95Lgmfelv2pXq_"/>
+<div class="absolute inset-0 bg-success/10 mix-blend-overlay z-10 pointer-events-none rounded-full"></div>
+<div class="absolute inset-0 tech-scanline z-10 pointer-events-none opacity-30 rounded-full"></div>
+</div>
+<div class="mt-3 text-[10px] font-mono text-slate-400 text-center">Day 6: Healthy Structure</div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex-none w-full pb-20">
+<div class="glass-slab-3d rounded-xl p-4 border border-white/5 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-30"></div>
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<div class="p-1.5 rounded bg-white/5 border border-white/10">
+<span class="material-symbols-outlined text-primary text-sm">view_timeline</span>
+</div>
+<div>
+<h3 class="text-sm font-bold text-white font-mono tracking-wider uppercase">Temporal Morphological Log</h3>
+<p class="text-[10px] text-slate-400 font-mono">Live Stream Data // Interval: 1min</p>
+</div>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 rounded bg-black/40 border border-white/5 text-[9px] font-mono text-slate-500">T-0</span>
+<span class="px-2 py-0.5 rounded bg-black/40 border border-white/5 text-[9px] font-mono text-slate-500">T-72h</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-white/10 text-[9px] font-mono uppercase tracking-widest text-slate-400">
+<th class="py-2 pl-2">Timestamp</th>
+<th class="py-2">Event ID</th>
+<th class="py-2 text-right">Δ Compactness</th>
+<th class="py-2 text-right">Δ Entropy</th>
+<th class="py-2 text-center">Status</th>
+</tr>
+</thead>
+<tbody class="font-mono text-[10px]">
+<tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
+<td class="py-2 pl-2 text-slate-300">14:02:45</td>
+<td class="py-2 text-slate-500 group-hover:text-primary transition-colors">EVT-9921</td>
+<td class="py-2 text-right text-danger font-bold text-glow-danger">+12.4%</td>
+<td class="py-2 text-right text-danger font-bold text-glow-danger">+8.2%</td>
+<td class="py-2 text-center"><span class="w-1.5 h-1.5 bg-danger rounded-full inline-block shadow-neon-danger"></span></td>
+</tr>
+<tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
+<td class="py-2 pl-2 text-slate-300">14:01:45</td>
+<td class="py-2 text-slate-500 group-hover:text-primary transition-colors">EVT-9920</td>
+<td class="py-2 text-right text-danger font-bold text-glow-danger">+11.1%</td>
+<td class="py-2 text-right text-danger font-bold text-glow-danger">+7.9%</td>
+<td class="py-2 text-center"><span class="w-1.5 h-1.5 bg-danger rounded-full inline-block shadow-neon-danger"></span></td>
+</tr>
+<tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
+<td class="py-2 pl-2 text-slate-300">14:00:45</td>
+<td class="py-2 text-slate-500 group-hover:text-primary transition-colors">EVT-9919</td>
+<td class="py-2 text-right text-danger/80 font-bold">+9.3%</td>
+<td class="py-2 text-right text-danger/80 font-bold">+6.5%</td>
+<td class="py-2 text-center"><span class="w-1.5 h-1.5 bg-danger/80 rounded-full inline-block"></span></td>
+</tr>
+<tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
+<td class="py-2 pl-2 text-slate-300">13:59:45</td>
+<td class="py-2 text-slate-500 group-hover:text-primary transition-colors">EVT-9918</td>
+<td class="py-2 text-right text-success font-bold text-glow-success">-0.2%</td>
+<td class="py-2 text-right text-success font-bold text-glow-success">+0.1%</td>
+<td class="py-2 text-center"><span class="w-1.5 h-1.5 bg-success rounded-full inline-block shadow-neon-success"></span></td>
+</tr>
+<tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
+<td class="py-2 pl-2 text-slate-300">13:58:45</td>
+<td class="py-2 text-slate-500 group-hover:text-primary transition-colors">EVT-9917</td>
+<td class="py-2 text-right text-success font-bold text-glow-success">-0.1%</td>
+<td class="py-2 text-right text-success font-bold text-glow-success">+0.3%</td>
+<td class="py-2 text-center"><span class="w-1.5 h-1.5 bg-success rounded-full inline-block shadow-neon-success"></span></td>
+</tr>
+<tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
+<td class="py-2 pl-2 text-slate-300">13:57:45</td>
+<td class="py-2 text-slate-500 group-hover:text-primary transition-colors">EVT-9916</td>
+<td class="py-2 text-right text-success/70 font-bold">+0.0%</td>
+<td class="py-2 text-right text-success/70 font-bold">+0.1%</td>
+<td class="py-2 text-center"><span class="w-1.5 h-1.5 bg-success/70 rounded-full inline-block"></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-[#0f172a] to-transparent pointer-events-none"></div>
+</div>
+</div>
+</main>
+<nav class="fixed bottom-0 left-0 right-0 nav-glass px-4 py-0 z-50 h-14 flex items-center border-t border-white/10">
+<div class="max-w-[1440px] mx-auto w-full flex justify-between items-center h-full">
+<div class="flex items-center space-x-12 h-full">
+<a class="flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-white transition-colors group h-full px-2 border-t-2 border-transparent hover:border-primary" href="#">
+<span class="material-symbols-outlined text-lg group-hover:text-primary transition-colors">dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-white transition-colors group h-full px-2 border-t-2 border-transparent hover:border-primary" href="#">
+<span class="material-symbols-outlined text-lg group-hover:text-primary transition-colors">monitor_heart</span>
+</a>
+<div class="relative -top-5 group">
+<div class="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
+<button class="bg-deep border border-primary/50 text-primary p-2.5 rounded-full shadow-neon-primary relative z-10 group-hover:scale-110 transition-transform duration-300 hover:bg-primary/10">
+<span class="material-symbols-outlined text-xl">biotech</span>
+</button>
+</div>
+<a class="flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-white transition-colors group h-full px-2 border-t-2 border-transparent hover:border-primary" href="#">
+<span class="material-symbols-outlined text-lg group-hover:text-primary transition-colors">history</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-white transition-colors group h-full px-2 border-t-2 border-transparent hover:border-primary" href="#">
+<span class="material-symbols-outlined text-lg group-hover:text-primary transition-colors">settings</span>
+</a>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-3 py-1.5 rounded border border-white/10 bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 text-[9px] font-mono font-bold tracking-wider uppercase transition-colors">
+                    Ignore
+                </button>
+<button class="px-4 py-1.5 rounded bg-primary/90 text-deep text-[9px] font-mono font-bold uppercase tracking-wider hover:bg-cyan-300 transition-colors shadow-neon-primary flex items-center gap-2 group backdrop-blur-sm">
+<span class="material-symbols-outlined text-xs group-hover:translate-y-0.5 transition-transform">download</span>
+                    Export
+                </button>
+</div>
+</div>
+</nav>
+
+</body></html>

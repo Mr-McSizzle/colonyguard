@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ColonyGuard Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#06b6d4",
+                        "primary-glow": "#0891b2",
+                        "danger": "#ef4444",
+                        "success": "#10b981",
+                        "background-dark": "#0a0f18",
+                        "surface-dark": "#1e293b",
+                    },
+                    fontFamily: {
+                        display: ["Space Grotesk", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"],
+                    },
+                    backgroundImage: {
+                        'hex-pattern': "url('data:image/svg+xml,%3Csvg width=\"56\" height=\"100\" viewBox=\"0 0 56 100\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cpath d=\"M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100\" fill=\"none\" stroke=\"rgba(6,182,212,0.05)\" stroke-width=\"1\"/%3E%3Cpath d=\"M28 0L28 34L0 50L0 84L28 100L56 84L56 50L28 34\" fill=\"none\" stroke=\"rgba(6,182,212,0.05)\" stroke-width=\"1\"/%3E%3C/svg%3E')",
+                    },
+                    animation: {
+                        'scanline': 'scanline 3s linear infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'float-delayed': 'float 6s ease-in-out 3s infinite',
+                        'pulse-glow': 'pulse-glow 4s infinite ease-in-out',
+                    },
+                    keyframes: {
+                        scanline: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(200%)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-5px)' },
+                        },
+                        'pulse-glow': {
+                            '0%, 100%': { opacity: '0.6', boxShadow: '0 0 5px rgba(6,182,212,0.2)' },
+                            '50%': { opacity: '1', boxShadow: '0 0 20px rgba(6,182,212,0.6)' },
+                        }
+                    }
+                },
+            },
+        };
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .perspective-1000 {
+                perspective: 1000px;
+            }
+            .transform-style-3d {
+                transform-style: preserve-3d;
+            }
+            .backface-hidden {
+                backface-visibility: hidden;
+            }
+        }
+        body {
+            background-color: #0a0f18;
+            color: #e2e8f0;
+        }
+        .glass-panel-3d {
+            background: rgba(16, 24, 40, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 4px 30px rgba(0, 0, 0, 0.5),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-panel-3d:hover {
+            transform: translateY(-4px) translateZ(0);
+            background: rgba(16, 24, 40, 0.6);
+            border-color: rgba(6, 182, 212, 0.3);
+            box-shadow: 
+                0 20px 40px -10px rgba(0, 0, 0, 0.7),
+                0 0 20px rgba(6, 182, 212, 0.1),
+                inset 0 0 0 1px rgba(6, 182, 212, 0.2);
+        }
+        .glass-panel-critical {
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            box-shadow: 
+                0 4px 30px rgba(0, 0, 0, 0.5),
+                0 0 15px rgba(239, 68, 68, 0.2),
+                inset 0 0 0 1px rgba(239, 68, 68, 0.1);
+        }
+        .glass-panel-critical:hover {
+            border-color: rgba(239, 68, 68, 0.6);
+            box-shadow: 
+                0 20px 40px -10px rgba(0, 0, 0, 0.8),
+                0 0 30px rgba(239, 68, 68, 0.3),
+                inset 0 0 0 1px rgba(239, 68, 68, 0.4);
+        }
+        .glass-stat-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+        .text-glow {
+            text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+        }
+        .text-glow-red {
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+        .scan-line {
+            background: linear-gradient(to bottom, transparent, rgba(6, 182, 212, 0.5), transparent);
+            height: 4px;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 20;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+        }
+        .bg-particles {
+            background-image: 
+                radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 50px 50px, 20px 20px;
+            background-position: 0 0, 25px 25px;
+        }.microscope-img-container::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            box-shadow: inset 0 0 40px 10px rgba(0,0,0,0.8);
+            pointer-events: none;
+            z-index: 10;
+        }
+        .telemetry-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.3;
+            overflow: hidden;
+        }
+        .telemetry-line {
+            position: absolute;
+            height: 1px;
+            background: rgba(6, 182, 212, 0.2);
+        }
+        .telemetry-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: rgba(6, 182, 212, 0.2);
+            position: absolute;
+        }
+    </style>
+</head>
+<body class="font-display min-h-screen relative overflow-x-hidden selection:bg-cyan-500/30 selection:text-cyan-200">
+<div class="fixed inset-0 bg-background-dark z-[-2]"></div>
+<div class="fixed inset-0 bg-hex-pattern opacity-30 z-[-1] animate-pulse-glow"></div>
+<div class="fixed inset-0 bg-particles opacity-20 z-[-1]"></div>
+<div class="telemetry-bg">
+<div class="telemetry-line top-[15%] left-0 w-full"></div>
+<div class="telemetry-line top-[85%] left-0 w-full"></div>
+<div class="telemetry-line top-0 left-[10%] h-full w-px bg-gradient-to-b from-transparent via-cyan-900/30 to-transparent"></div>
+<div class="telemetry-line top-0 right-[10%] h-full w-px bg-gradient-to-b from-transparent via-cyan-900/30 to-transparent"></div>
+<div class="telemetry-text top-[16%] left-[2%]">SYS.MONITORING.ACTIVE</div>
+<div class="telemetry-text top-[16%] right-[2%]">SECURE.LINK.ESTABLISHED</div>
+<div class="telemetry-text bottom-[16%] left-[2%]">GRID.REF.X72</div>
+<div class="telemetry-text bottom-[16%] right-[2%]">LATENCY: 12ms</div>
+</div>
+<div class="relative z-10 flex flex-col h-screen overflow-hidden">
+<nav class="w-full glass-panel-3d border-b border-white/5 px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-primary drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]">
+<span class="material-icons-round text-3xl">biotech</span>
+<h1 class="text-2xl font-bold tracking-tight text-white">COLONY<span class="text-cyan-400 text-glow">GUARD</span></h1>
+</div>
+<div class="h-8 w-px bg-gradient-to-b from-transparent via-slate-600 to-transparent mx-2"></div>
+<div class="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/50 border border-success/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+<span class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-success shadow-[0_0_10px_#10b981]"></span>
+</span>
+<span class="text-xs font-mono font-bold text-success tracking-wider drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]">LIVE ANALYSIS</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-6 text-sm font-medium text-slate-400">
+<a class="hover:text-cyan-300 transition-colors flex items-center gap-1 hover:drop-shadow-[0_0_5px_rgba(6,182,212,0.5)]" href="#"><span class="material-icons-round text-base">dashboard</span> Dashboard</a>
+<a class="hover:text-cyan-300 transition-colors flex items-center gap-1 hover:drop-shadow-[0_0_5px_rgba(6,182,212,0.5)]" href="#"><span class="material-icons-round text-base">analytics</span> Reports</a>
+<a class="hover:text-cyan-300 transition-colors flex items-center gap-1 hover:drop-shadow-[0_0_5px_rgba(6,182,212,0.5)]" href="#"><span class="material-icons-round text-base">science</span> Lab</a>
+</div>
+<button class="bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 font-bold py-2 px-4 rounded-lg flex items-center gap-2 shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-all transform hover:scale-105 hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] backdrop-blur-sm">
+<span class="material-icons-round text-sm">add</span>
+                New Analysis
+            </button>
+<button class="p-2 rounded-full hover:bg-white/5 transition-colors relative">
+<span class="absolute top-2 right-2 w-2 h-2 bg-danger rounded-full shadow-[0_0_5px_#ef4444]"></span>
+<span class="material-icons-round text-slate-300">notifications</span>
+</button>
+<div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 border border-white/20 shadow-[0_0_15px_rgba(168,85,247,0.4)]"></div>
+</div>
+</nav>
+<main class="flex-1 overflow-y-auto p-6 lg:p-8 perspective-1000">
+<div class="max-w-[1400px] mx-auto space-y-8">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="glass-stat-card p-6 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+<div class="absolute -right-6 -top-6 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl"></div>
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity duration-500">
+<span class="material-icons-round text-6xl text-white transform rotate-12">grid_view</span>
+</div>
+<h3 class="text-slate-400 text-xs font-mono font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+<span class="w-1 h-1 bg-cyan-400 rounded-full shadow-[0_0_5px_#22d3ee]"></span> Total Colonies
+                    </h3>
+<div class="flex items-end gap-3 relative z-10">
+<span class="text-5xl font-bold text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">2,450</span>
+<span class="text-xs font-mono text-success mb-2 flex items-center bg-success/10 px-1.5 py-0.5 rounded border border-success/20">
+<span class="material-icons-round text-sm mr-1">trending_up</span> +5%
+                        </span>
+</div>
+<div class="mt-4 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden shadow-inner">
+<div class="h-full bg-cyan-500 w-3/4 shadow-[0_0_10px_#06b6d4]"></div>
+</div>
+</div>
+<div class="glass-stat-card p-6 rounded-2xl relative overflow-hidden group border-l-4 border-l-danger hover:-translate-y-1 transition-transform duration-300 shadow-[0_0_20px_rgba(239,68,68,0.15)]">
+<div class="absolute -right-6 -top-6 w-24 h-24 bg-danger/10 rounded-full blur-2xl"></div>
+<div class="absolute top-0 right-0 p-4 opacity-20">
+<span class="material-icons-round text-6xl text-danger animate-pulse">warning</span>
+</div>
+<h3 class="text-red-300 text-xs font-mono font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+<span class="w-1 h-1 bg-danger rounded-full shadow-[0_0_5px_#ef4444]"></span> High Instability
+                    </h3>
+<div class="flex items-end gap-3 relative z-10">
+<span class="text-5xl font-bold text-danger text-glow-red">12</span>
+<span class="text-xs font-mono text-danger mb-2 flex items-center bg-danger/10 px-1.5 py-0.5 rounded border border-danger/20">
+<span class="material-icons-round text-sm mr-1">priority_high</span> 2%
+                        </span>
+</div>
+<div class="mt-4 flex items-center gap-2 text-xs text-red-300/70 font-mono">
+<span class="w-2 h-2 rounded-full bg-danger animate-ping"></span> ACTION REQUIRED
+                    </div>
+</div>
+<div class="glass-stat-card p-6 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+<div class="absolute -right-6 -top-6 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl"></div>
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity duration-500">
+<span class="material-icons-round text-6xl text-cyan-400 transform rotate-12">speed</span>
+</div>
+<h3 class="text-slate-400 text-xs font-mono font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+<span class="w-1 h-1 bg-cyan-400 rounded-full shadow-[0_0_5px_#22d3ee]"></span> Avg CII Score
+                    </h3>
+<div class="flex items-end gap-3 relative z-10">
+<span class="text-5xl font-bold text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">58.4</span>
+<span class="text-xs font-mono text-slate-400 mb-2">/ 100</span>
+</div>
+<div class="mt-4 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden shadow-inner">
+<div class="h-full bg-gradient-to-r from-success to-yellow-400 w-[58%] shadow-[0_0_10px_rgba(250,204,21,0.5)]"></div>
+</div>
+</div>
+<div class="glass-stat-card p-6 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+<div class="absolute -right-6 -top-6 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl"></div>
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity duration-500">
+<span class="material-icons-round text-6xl text-purple-400 transform rotate-12">timer</span>
+</div>
+<h3 class="text-slate-400 text-xs font-mono font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+<span class="w-1 h-1 bg-purple-400 rounded-full shadow-[0_0_5px_#a855f7]"></span> Early Warning
+                    </h3>
+<div class="flex items-end gap-3 relative z-10">
+<span class="text-5xl font-bold text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">72<span class="text-xl font-normal text-slate-500 ml-1">hrs</span></span>
+</div>
+<div class="mt-4 flex justify-between text-xs text-slate-400 font-mono">
+<span>Status: ACTIVE</span>
+<span class="text-success drop-shadow-[0_0_3px_#10b981]">OPTIMAL</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2 flex flex-col gap-6">
+<div class="flex justify-between items-center px-2 border-b border-white/5 pb-2">
+<h2 class="text-xl font-bold text-white flex items-center gap-3">
+<span class="material-icons-round text-cyan-400 drop-shadow-[0_0_5px_#22d3ee]">blur_on</span>
+<span class="tracking-wide">ACTIVE COLONIES</span>
+</h2>
+<button class="text-xs text-cyan-400 hover:text-cyan-300 font-mono flex items-center transition-colors uppercase tracking-wider gap-1 group">
+                            Full Database <span class="material-icons-round text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="glass-panel-3d rounded-xl p-4 cursor-pointer group animate-float relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<div class="flex justify-between items-start mb-4 relative z-10">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-success shadow-[0_0_8px_#10b981]"></div>
+<div>
+<h4 class="font-bold text-lg text-white group-hover:text-cyan-300 transition-colors tracking-tight">COL_001</h4>
+<p class="text-[10px] text-cyan-500/70 font-mono">ID: #8392A // SECTOR-7</p>
+</div>
+</div>
+<span class="px-2 py-1 rounded text-[10px] font-bold font-mono bg-success/10 text-success border border-success/30 shadow-[0_0_10px_rgba(16,185,129,0.1)]">STABLE</span>
+</div>
+<div class="relative h-40 rounded-lg overflow-hidden border border-slate-700/50 microscope-img-container group-hover:border-cyan-500/30 transition-colors">
+<div class="scan-line animate-scanline"></div>
+<img alt="Microscope view of colony" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700 grayscale-[0.2]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjSFhTIM_3cB3MSknl2ssw5-HcaLHr_fsONLEDq2N-vejierz7BANe6hTPg4ry-ssbv8aU_-Wureva2qIHjtPfeCtwsnOGw-WA7LMMhmL17tyhGZdLiexMgFZ2FlqS3bzq0IKZbGLCpJFKH0xza2imX125ySaYdQlDfEAZcRos-D05eFG5iKoskr6sM8TMAXdKzdmvD2_VqE2pktzd_wrTCBGvYm4SBbhaale6_5xLgd-qnIkkBJr5_U_Dyn6ZCG_tH_M-X9u9_Jc_"/>
+<div class="absolute inset-0 border border-white/5 p-2 flex flex-col justify-between">
+<div class="flex justify-between"><div class="w-2 h-2 border-l border-t border-cyan-500/50"></div><div class="w-2 h-2 border-r border-t border-cyan-500/50"></div></div>
+<div class="flex justify-between"><div class="w-2 h-2 border-l border-b border-cyan-500/50"></div><div class="w-2 h-2 border-r border-b border-cyan-500/50"></div></div>
+</div>
+<div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded text-xs text-cyan-400 font-mono border border-cyan-500/20 shadow-lg">
+                                    CII: 3.4
+                                </div>
+</div>
+<div class="mt-4 flex justify-between items-center text-xs relative z-10">
+<div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden mr-4 shadow-inner">
+<div class="bg-success h-full w-[12%] shadow-[0_0_8px_#10b981]"></div>
+</div>
+<span class="text-slate-400 font-mono whitespace-nowrap">STR: LOW</span>
+</div>
+</div>
+<div class="glass-panel-critical rounded-xl p-4 relative overflow-hidden group animate-float-delayed cursor-pointer">
+<div class="absolute inset-0 bg-danger/5 animate-pulse-glow pointer-events-none"></div>
+<div class="flex justify-between items-start mb-4 relative z-10">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-danger animate-ping"></div>
+<div>
+<h4 class="font-bold text-lg text-white group-hover:text-danger transition-colors tracking-tight text-glow-red">COL_002</h4>
+<p class="text-[10px] text-red-400/70 font-mono">ID: #9921B // SECTOR-9</p>
+</div>
+</div>
+<span class="px-2 py-1 rounded text-[10px] font-bold font-mono bg-danger/10 text-danger border border-danger/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]">CRITICAL</span>
+</div>
+<div class="relative h-40 rounded-lg overflow-hidden border border-danger/40 microscope-img-container shadow-[0_0_15px_rgba(239,68,68,0.1)]">
+<div class="scan-line animate-scanline bg-gradient-to-b from-transparent via-red-500/50 to-transparent"></div>
+<img alt="Microscope view of colony unstable" class="w-full h-full object-cover opacity-90 group-hover:scale-110 transition-transform duration-700 sepia-[.2] hue-rotate-[-40deg]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWOMcbru4HP0TLHysHVWK___R3D8A3aC9HqHt3eu7GAPnrwov1-qdaR5fUCvd8MUoe2202cuDbAUFRZ-ZYjPzwJTzaXZj_o-ld8knuXWV5sO1tOacqWaRrZOEj0fSV3p_syGkxYqNGucBjvveoC8te07qAXuIq_ZVRNMC4HZ3EhB1bdruJci4Q4K7w1QimTEl-hJ4LWZtFvGzHRPJzxtxAS3CtxjYx4-6C8gnLFi_e9hCf1Uf9W2De9ErFgJNAnEgb0E_JDqMY1vyx"/>
+<div class="absolute inset-0 bg-red-900/10 mix-blend-overlay"></div>
+<div class="absolute bottom-2 right-2 bg-danger text-white px-2 py-1 rounded text-xs font-mono font-bold shadow-[0_0_10px_#ef4444]">
+                                    CII: 8.6
+                                </div>
+</div>
+<div class="mt-4 flex justify-between items-center text-xs relative z-10">
+<div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden mr-4 shadow-inner">
+<div class="bg-danger h-full w-[86%] shadow-[0_0_8px_#ef4444]"></div>
+</div>
+<span class="text-danger font-bold font-mono whitespace-nowrap animate-pulse">STR: HIGH</span>
+</div>
+</div>
+<div class="glass-panel-3d rounded-xl p-4 cursor-pointer group animate-float relative overflow-hidden">
+<div class="flex justify-between items-start mb-4 relative z-10">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-success shadow-[0_0_8px_#10b981]"></div>
+<div>
+<h4 class="font-bold text-lg text-white group-hover:text-cyan-300 transition-colors tracking-tight">COL_003</h4>
+<p class="text-[10px] text-cyan-500/70 font-mono">ID: #7211C // SECTOR-2</p>
+</div>
+</div>
+<span class="px-2 py-1 rounded text-[10px] font-bold font-mono bg-success/10 text-success border border-success/30 shadow-[0_0_10px_rgba(16,185,129,0.1)]">STABLE</span>
+</div>
+<div class="relative h-40 rounded-lg overflow-hidden border border-slate-700/50 microscope-img-container group-hover:border-cyan-500/30 transition-colors">
+<div class="scan-line animate-scanline" style="animation-delay: 1s;"></div>
+<img alt="Microscope view of colony" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIYOlOuAxH9eVe7nLmfik3yscWwFpLnsAEPoVkT1QfVAyUeSIrMHR_p1VI8-_zJYMwDhQaboTAreYCL8AGsojrjVb11qVB7mtzCqGAB7scysfEWEQWEx1giSeVQy_tIhG-a1fyZK4kQNMzMCBrMoCCvBnEkRobFAI_HFEvSB28b1bWDMHIU3cq-Oon9FCHyMFDKY_8qhnAphBMVZKCe2x_keLsLsPh2eYWLbz9FF7mOh-pUDmFdTlClnZsxETza5V0u-O7SwU3IGrP"/>
+<div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded text-xs text-cyan-400 font-mono border border-cyan-500/20 shadow-lg">
+                                    CII: 1.8
+                                </div>
+</div>
+<div class="mt-4 flex justify-between items-center text-xs relative z-10">
+<div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden mr-4 shadow-inner">
+<div class="bg-success h-full w-[18%] shadow-[0_0_8px_#10b981]"></div>
+</div>
+<span class="text-slate-400 font-mono whitespace-nowrap">STR: LOW</span>
+</div>
+</div>
+<div class="glass-panel-3d rounded-xl p-4 cursor-pointer group animate-float-delayed relative overflow-hidden border-transparent hover:border-yellow-500/30">
+<div class="flex justify-between items-start mb-4 relative z-10">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_8px_#eab308]"></div>
+<div>
+<h4 class="font-bold text-lg text-white group-hover:text-yellow-400 transition-colors tracking-tight">COL_004</h4>
+<p class="text-[10px] text-yellow-500/70 font-mono">ID: #4420D // SECTOR-5</p>
+</div>
+</div>
+<span class="px-2 py-1 rounded text-[10px] font-bold font-mono bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 shadow-[0_0_10px_rgba(234,179,8,0.1)]">WARNING</span>
+</div>
+<div class="relative h-40 rounded-lg overflow-hidden border border-slate-700/50 microscope-img-container group-hover:border-yellow-500/30 transition-colors">
+<div class="scan-line animate-scanline bg-gradient-to-b from-transparent via-yellow-500/50 to-transparent" style="animation-delay: 1.5s;"></div>
+<img alt="Microscope view of colony warning" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCC4z3xsixZZySj_tv9T-QBISSyFxVAGkdbMPOft3Aqut01hjV7po1Y3X-SNZp8diUMEvlDH1aoLgvOvgZ5diT-tzt0W8O_K4FG0jTYt919Gxy3xDbtpnfiyBY_JYCtW3_GiNKJ3RKX1n_4nCgvvSfXR-igkJ0ylqu7gxFcOU8-BuIE46gWegb169aM3bhIXY9iPyiw2ZQfEw4aJa-EIvrvV5coscxknJlkwS8jIaqIaGziPhIMPs4x1zfxoaiwTU4W3DpPF1F9qHMR"/>
+<div class="absolute bottom-2 right-2 bg-yellow-900/80 backdrop-blur-md px-2 py-1 rounded text-xs text-yellow-200 font-mono border border-yellow-500/20 shadow-lg">
+                                    CII: 5.4
+                                </div>
+</div>
+<div class="mt-4 flex justify-between items-center text-xs relative z-10">
+<div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden mr-4 shadow-inner">
+<div class="bg-yellow-500 h-full w-[54%] shadow-[0_0_8px_#eab308]"></div>
+</div>
+<span class="text-yellow-500 font-mono whitespace-nowrap">STR: MED</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-6">
+<div class="glass-panel-3d p-6 rounded-2xl border border-cyan-500/10 bg-[linear-gradient(180deg,rgba(6,182,212,0.05)_0%,rgba(15,23,42,0.4)_100%)] relative overflow-hidden">
+<div class="absolute top-0 right-0 p-3 opacity-10">
+<span class="material-icons-round text-8xl text-cyan-500 -mt-4 -mr-4">savings</span>
+</div>
+<h3 class="text-sm font-bold text-white mb-6 flex items-center gap-2 tracking-wider">
+<span class="material-icons-round text-cyan-400">savings</span>
+<span>COST OPTIMIZATION</span>
+</h3>
+<div class="mb-8 text-center relative z-10">
+<div class="text-5xl font-mono font-bold text-white text-glow mb-2">$12,450</div>
+<p class="text-xs text-cyan-400/60 font-mono border-t border-cyan-500/10 pt-2 inline-block">EST. MONTHLY RECOVERY</p>
+</div>
+<div class="space-y-6 relative z-10">
+<div>
+<div class="flex justify-between text-[10px] font-mono mb-3 text-cyan-300/70 tracking-widest">
+<span>DISCARD THRESHOLD</span>
+<span class="text-white bg-cyan-900/50 px-1 rounded">CII &gt; 7.5</span>
+</div>
+<div class="relative group">
+<div class="absolute -inset-1 bg-cyan-500/20 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-200"></div>
+<input class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer relative z-10 [&amp;::-webkit-slider-thumb]:appearance-none [&amp;::-webkit-slider-thumb]:h-4 [&amp;::-webkit-slider-thumb]:w-4 [&amp;::-webkit-slider-thumb]:rounded-full [&amp;::-webkit-slider-thumb]:bg-cyan-400 [&amp;::-webkit-slider-thumb]:shadow-[0_0_10px_#22d3ee] [&amp;::-webkit-slider-thumb]:transition-transform [&amp;::-webkit-slider-thumb]:hover:scale-125" max="100" min="1" type="range" value="75"/>
+</div>
+</div>
+<div class="pt-4 border-t border-white/5">
+<div class="flex justify-between items-center mb-2">
+<span class="text-[10px] uppercase text-slate-500 font-bold tracking-wider">Resource Eff.</span>
+<span class="text-xs font-bold text-success font-mono">HIGH</span>
+</div>
+<div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden shadow-inner">
+<div class="bg-success h-full w-[85%] shadow-[0_0_10px_#10b981]"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="glass-panel-3d p-6 rounded-2xl flex-1 flex flex-col relative overflow-hidden">
+<div class="absolute -left-10 bottom-0 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl"></div>
+<h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2 tracking-wider">
+<span class="material-icons-round text-purple-400 animate-pulse">videocam</span>
+<span>LIVE FEED: LAB 04</span>
+</h3>
+<div class="relative rounded-xl overflow-hidden flex-1 min-h-[180px] border border-slate-700 bg-black shadow-2xl">
+<div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjMDAwIj48L3JlY3Q+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMxZTI5M2IiPjwvcmVjdD4KPC9zdmc+')] opacity-20"></div>
+<div class="absolute inset-0 flex items-center justify-center opacity-40">
+<div class="grid grid-cols-4 gap-px w-full h-full bg-slate-900/50 p-4">
+<div class="bg-slate-800/50 rounded-sm"></div>
+<div class="bg-slate-800/50 rounded-sm"></div>
+<div class="bg-slate-800/50 rounded-sm"></div>
+<div class="bg-slate-800/50 rounded-sm"></div>
+<div class="bg-red-900/20 rounded-sm border border-danger/40 shadow-[inset_0_0_10px_rgba(239,68,68,0.2)] animate-pulse"></div>
+<div class="bg-slate-800/50 rounded-sm"></div>
+<div class="bg-slate-800/50 rounded-sm"></div>
+<div class="bg-slate-800/50 rounded-sm"></div>
+</div>
+</div>
+<div class="absolute top-3 left-3 flex gap-2">
+<span class="bg-black/60 backdrop-blur px-2 py-0.5 rounded text-[9px] text-cyan-400 font-mono border border-cyan-900">CAM-04.LIVE</span>
+<span class="bg-red-500/20 px-2 py-0.5 rounded text-[9px] text-red-400 font-mono border border-red-500/30 animate-pulse flex items-center gap-1">
+<span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span> REC
+                                </span>
+</div>
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="w-40 h-24 border border-danger/40 rounded-lg relative shadow-[0_0_20px_rgba(239,68,68,0.1)]">
+<div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-danger/90 text-white text-[9px] px-2 py-0.5 rounded-sm font-mono tracking-wider shadow-lg shadow-red-900/50">TARGET ACQUIRED</div>
+<div class="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-danger"></div>
+<div class="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-danger"></div>
+<div class="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-danger"></div>
+<div class="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-danger"></div>
+<div class="absolute top-0 left-0 w-full h-0.5 bg-danger/50 animate-scanline" style="animation-duration: 2s;"></div>
+</div>
+</div>
+</div>
+<div class="mt-4 grid grid-cols-2 gap-3">
+<button class="py-2.5 px-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 border border-white/5 text-xs font-bold text-slate-300 transition-colors flex items-center justify-center gap-2 hover:text-white group">
+<span class="material-icons-round text-sm group-hover:text-cyan-400">pause</span> PAUSE
+                            </button>
+<button class="py-2.5 px-3 rounded-lg bg-cyan-600/20 hover:bg-cyan-500/30 border border-cyan-500/30 text-cyan-300 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-[0_0_10px_rgba(6,182,212,0.1)] hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+<span class="material-icons-round text-sm">fullscreen</span> EXPAND
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<div class="fixed bottom-8 right-8 z-50">
+<button class="w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-600 text-white rounded-full shadow-[0_0_30px_rgba(6,182,212,0.6)] flex items-center justify-center hover:scale-110 transition-transform cursor-pointer border border-white/20 relative group">
+<span class="absolute inset-0 rounded-full border border-white/30 animate-ping opacity-20"></span>
+<span class="material-icons-round text-3xl group-hover:rotate-90 transition-transform duration-500">science</span>
+</button>
+</div>
+
+</body></html>
