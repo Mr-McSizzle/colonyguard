@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ColonyGuard
 
-## Getting Started
+**Experimental temporal ML system for monitoring iPSC colony morphology and surfacing instability signals from longitudinal culture data.**
 
-First, run the development server:
+ColonyGuard explores whether measurable changes in colony shape, texture, and image-derived morphology can be converted into a useful instability score for cell-culture monitoring.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+> Research prototype — not a clinical, manufacturing, or diagnostic system.
+
+## What is in this repository
+
+- A Next.js interface for exploring colony-level data and model outputs.
+- A sequence of Python experiments for feature engineering and regression.
+- Morphology and texture features including diameter, area, perimeter, circularity, compactness, solidity, convexity, eccentricity, intensity statistics, entropy, contrast, homogeneity, energy, correlation, and edge density.
+- Tabular iPSC colony-tracking data used by the experiments.
+- A serialized experimental model artifact (`colony_model.pkl`).
+
+## Modeling approach
+
+The experiments treat the **Colony Instability Index** as a regression target and test multiple feature transformations and model configurations. The repository includes XGBoost-based experimentation, polynomial feature expansion, transformed targets, and repeated train/test splits.
+
+Representative pipeline:
+
+```text
+colony tracking data
+      ↓
+morphology + texture features
+      ↓
+feature engineering / transforms
+      ↓
+regression model
+      ↓
+Colony Instability Index
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Why this project is interesting
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Cell-culture monitoring is a temporal problem: a single image can look acceptable while the underlying trajectory is deteriorating. ColonyGuard was built around the idea that **trend-level morphology may be more informative than one-frame inspection**.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Running the web app
 
-## Learn More
+```bash
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Then open `http://localhost:3000`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Research notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The repository contains exploratory model-selection scripts rather than a locked, independently validated benchmark. Any performance observed during repeated split search should be treated as experimental and **not** as an unbiased estimate of real-world predictive performance.
 
-## Deploy on Vercel
+A stronger validation path would use:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- a fixed untouched holdout set;
+- culture-level rather than row-level splitting where appropriate;
+- prospective temporal validation;
+- external data from a separate experiment or lab;
+- pre-registered metrics and thresholds.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Status
+
+Prototype / research experiment. The main value of this repository is the pipeline design, feature work, modeling experiments, and the attempt to turn longitudinal colony morphology into a decision-support signal.
